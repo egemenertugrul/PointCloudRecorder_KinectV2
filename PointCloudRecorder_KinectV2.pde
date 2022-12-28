@@ -4,10 +4,10 @@ import java.util.Date;
 // Kinect Library object
 Kinect2 kinect2, kinect2b;
 
-// Angle for rotation
 float rot = 135;
 int skip = 3;
-int showDevice = 0;
+int showDevice = 1, previousDeviceIndex = 0;
+
 int strokeWidth = 2;
 String showDeviceTxt = "None";
 
@@ -17,7 +17,7 @@ String subPath_0 = "/Cam1/", subPath_1 = "/Cam2/";
 boolean isRecording = false;
 
 void setup() {
-  size(800, 600, P3D);
+  size(1280, 720, P3D);
   kinect2 = new Kinect2(this);
   kinect2.initDepth();
   kinect2.initRegistered();
@@ -27,6 +27,8 @@ void setup() {
   kinect2b.initDepth();
   kinect2b.initRegistered();
   kinect2b.initDevice(1);
+  
+  UpdateDeviceText();
 }
 
 PrintWriter output, outputb;
@@ -134,7 +136,7 @@ void draw() {
     }
     text("Duration: " + (date.getTime() - initTime) / 1000f, 200, 65);
   }
-  text("Is Recording: " + isRecording + " (Spacebar)", 50, 65);
+  text("Is Recording: " + (isRecording ? "Yes" : "No") + " (Spacebar)", 50, 65);
   fill(255);
   if (showDevice > 0) {
     fill(144, 144, 255);
@@ -153,8 +155,6 @@ void draw() {
     outputb.flush();  // Writes the remaining data to the file
     outputb.close();  // Finishes the file
   }
-  // Rotate
-  //rot += 0.0015;
 }
 
 void keyPressed() {
@@ -180,6 +180,10 @@ void keyPressed() {
       Date date = new Date();
       initTime = date.getTime();
       mainPath = "/recordings/" + initTime + "/";
+      previousDeviceIndex = showDevice;
+      showDevice = 0;
+    } else {
+      showDevice = previousDeviceIndex;
     }
   }
 
@@ -205,21 +209,37 @@ void keyPressed() {
   }
 
   if (key=='1') {
-    showDeviceTxt = "None";
-    println(showDeviceTxt);
     showDevice = 0;
+    UpdateDeviceText();
   }
 
   if (key=='2') {
-    showDeviceTxt = "Device 0";
-    println(showDeviceTxt);
     showDevice = 1;
+    UpdateDeviceText();
   }
 
   if (key=='3') {
-    showDeviceTxt = "Device 1";
-    println(showDeviceTxt);
     showDevice = 2;
+    UpdateDeviceText();
+  }
+}
+
+void UpdateDeviceText() {
+  switch(showDevice) {
+  case 0:
+    showDeviceTxt = "None";
+    break;
+
+  case 1:
+    showDeviceTxt = "Device 1";
+    break;
+
+  case 2:
+    showDeviceTxt = "Device 2";
+    break;
+
+  default:
+    break;
   }
 }
 
