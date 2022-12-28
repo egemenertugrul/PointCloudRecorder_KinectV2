@@ -1,13 +1,16 @@
-import org.openkinect.processing.*;
+import org.openkinect.processing.*; 
 import java.util.Date;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 // Kinect Library object
 Kinect2 kinect2, kinect2b;
+OrbitCamera cam;
 
-// Angle for rotation
-float rot = 135;
 int skip = 3;
-int showDevice = 0;
+int showDevice = 1, previousDeviceIndex = 0;
 int strokeWidth = 2;
 String showDeviceTxt = "None";
 
@@ -18,6 +21,9 @@ boolean isRecording = false;
 
 void setup() {
   size(800, 600, P3D);
+  cam = new OrbitCamera();
+  cam.setTargetPos(new PVector(0, 0, 50));
+  
   kinect2 = new Kinect2(this);
   kinect2.initDepth();
   kinect2.initRegistered();
@@ -50,10 +56,12 @@ void draw() {
 
 
   background(0);
-
+  cam.update();
   // Translate and rotate
   pushMatrix();
-  rotateY(rot);
+  cam.yaw = PI + QUARTER_PI;
+
+  cam.applyRotation();
 
   // We're just going to calculate and draw every 2nd pixel
 
@@ -76,8 +84,9 @@ void draw() {
         int d = depth[offset];
         //calculte the x, y, z camera position based on the depth information
         PVector point = depthToPointCloudPos(x, y, d);
-        color c = img.pixels[offset];
 
+        color c = img.pixels[offset];
+                
         if (showDevice == 1) {
           vertex(point.x, point.y, point.z);
           stroke(c);
@@ -136,7 +145,7 @@ void draw() {
   }
   text("Is Recording: " + isRecording + " (Spacebar)", 50, 65);
   fill(255);
-  if (showDevice > 0) {
+  if(showDevice > 0){
     fill(144, 144, 255);
   }
   text("Showing: " + showDeviceTxt + " (1/2/3)", 50, 80);
@@ -144,7 +153,7 @@ void draw() {
   text("Get every: " + skip + " (Arrow UP/DOWN)", 50, 95);
   fill(255);
   text("Stroke width: " + strokeWidth + " (Arrow LEFT/RIGHT)", 50, 110);
-
+  
 
   if (isRecording) {
     output.flush();  // Writes the remaining data to the file
@@ -153,8 +162,6 @@ void draw() {
     outputb.flush();  // Writes the remaining data to the file
     outputb.close();  // Finishes the file
   }
-  // Rotate
-  //rot += 0.0015;
 }
 
 void keyPressed() {
@@ -180,6 +187,10 @@ void keyPressed() {
       Date date = new Date();
       initTime = date.getTime();
       mainPath = "/recordings/" + initTime + "/";
+      previousDeviceIndex = showDevice;
+      showDevice = 0;
+    } else {
+      showDevice = previousDeviceIndex;
     }
   }
 
@@ -193,7 +204,7 @@ void keyPressed() {
       skip -= 1;
       skip = constrain(skip, 1, 10);
     }
-
+    
     if (keyCode == RIGHT) {
       strokeWidth += 1;
       strokeWidth = constrain(strokeWidth, 1, 10);
@@ -211,23 +222,23 @@ void keyPressed() {
   }
 
   if (key=='2') {
-    showDeviceTxt = "Device 0";
+    showDeviceTxt = "Device 1";
     println(showDeviceTxt);
     showDevice = 1;
   }
 
   if (key=='3') {
-    showDeviceTxt = "Device 1";
+    showDeviceTxt = "Device 2";
     println(showDeviceTxt);
     showDevice = 2;
   }
 }
 
-// calculate the xyz camera position based on the depth data
+//calculte the xyz camera position based on the depth data
 PVector depthToPointCloudPos(int x, int y, float depthValue) {
   PVector point = new PVector();
   point.z = (depthValue);// / (1.0f); // Convert from mm to meters
-  point.x = (x - CameraParams.cx) * point.z / CameraParams.fx;
-  point.y = (y - CameraParams.cy) * point.z / CameraParams.fy;
+  point.x = -(x - CameraParams.cx) * point.z / CameraParams.fx;
+  point.y = -(y - CameraParams.cy) * point.z / CameraParams.fy;
   return point;
 }
