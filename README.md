@@ -1,6 +1,6 @@
 # Point Cloud / Volumetric Recorder
 
-**Point Cloud Recorder (PCR)** is a tool for recording series of .PLY files as point clouds / volumetric videos.
+**Point Cloud Recorder (PCR)** is a tool for recording series of .PLY files as point clouds / volumetric videos from 2 Kinect V2s, facing each other (180 degrees).
 
 PCR uses [shiffman/OpenKinect-for-Processing](https://github.com/shiffman/OpenKinect-for-Processing). Tested on Processing 4.1.1 and Windows 10.
 
